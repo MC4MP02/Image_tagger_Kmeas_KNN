@@ -40,12 +40,9 @@ def retrieval_by_shape(imatges, labels, pregunta):
     # funció pot ser millorada afegint un paràmetre d’entrada que contingui el percentatge
     # de K-neighbors amb l’etiqueta que busquem i retorni les imatges ordenades.
 
-    if len(imatges) != len(labels):
-        raise ValueError("Las listas deben de tener la misma longitud")
-
     images_list = []
-    for i in range(len(imatges)):
-         if pregunta == labels[i]:
+    for i in range(len(labels)):
+         if labels[i] == pregunta:
              images_list.append(imatges[i])
     return images_list
 
@@ -154,7 +151,7 @@ def menu_principal():
         '5': ('Color accuracy', test_color_accuracy),
         '6': ('Salir', salir)
     }
-    generar_menu(opciones, '5')
+    generar_menu(opciones, '6')
 
 def generar_menu(opciones, opcion_salida):
     opcion = None
@@ -255,13 +252,14 @@ def test_ret_by_shape():
     # Colors to ask
     shapes_to_ask = a
 
-    train_class_num = round(train_imgs.shape[0])
-    nn = KNN(train_imgs[:train_class_num], train_class_labels[:train_class_num])
-    test_class_num = round(test_imgs.shape[0])
-    knn_list = nn.predict(test_imgs[:test_class_num], 5)
-
+    nn = KNN(train_imgs[:50], train_class_labels[:50])
+    knn_list = nn.predict(test_imgs[:50], k=8)
+    print(class_labels[:50])
+    print()
+    print()
+    print(knn_list)
     # Using retrieval_by_color to apply the question
-    matching = retrieval_by_shape(test_imgs[:test_class_num], knn_list, shapes_to_ask)
+    matching = retrieval_by_shape(train_imgs[:50], knn_list, shapes_to_ask)
     # Visualizing the images that match
     visualize_retrieval(np.array(matching), len(matching), title='RETRIEVAL_BY_SHAPE')
 
