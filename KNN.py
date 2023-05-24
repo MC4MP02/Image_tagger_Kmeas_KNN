@@ -10,6 +10,7 @@ class KNN:
     def __init__(self, train_data, labels):
         self._init_train(train_data)
         self.labels = np.array(labels)
+        self.neighbors = []
 
     def _init_train(self, train_data):
         """
