@@ -16,21 +16,17 @@ def retrieval_by_color(imatges, labels, pregunta):
     # fem. Aquesta funció pot ser millorada afegint un paràmetre d’entrada que contingui el
     # percentatge de cada color que conté la imatge, i retorni les imatges ordenades.
 
-    if len(imatges) != len(labels):
-        raise ValueError("Las listas deben de tener la misma longitud")
-
     resultats = []
     indices = []
-    ok_list = [False]*len(imatges)
+    info = []
 
     for i, el in enumerate(imatges):
         if all(color in labels[i] for color in pregunta):
             resultats.append(el)
             indices.append(i)
+            info.append(color_labels[i])
 
-
-
-    return indices, resultats, ok_list
+    return indices, resultats, info
 
 def retrieval_by_shape(imatges, labels, pregunta):
     # Funció que rep com a entrada una llista d’imatges, les etiquetes que
@@ -54,16 +50,15 @@ def retrieval_combined(imatges, shape_labels, color_labels, preguntaF, preguntaC
     # de color i forma de les etiquetes.
 
     images_list = []
-    shape_color = list(zip(color_labels, shape_labels))
-    for i, shape_color in enumerate(shape_color):
+    for i, (col, sh) in enumerate(zip(color_labels, shape_labels)):
         color_yes = False
         shape_yes = False
-        for color in preguntaC:
-            if color in shape_color[0]:
+        for color in col:
+            if color in preguntaC:
                 color_yes = True
                 break
 
-        if preguntaF == shape_color[1]:
+        if preguntaF == sh:
             shape_yes = True
 
         if color_yes and shape_yes:
@@ -79,17 +74,17 @@ def Kmean_statistics(kmeans, imagenes, Kmax):
     # aquestes dades.
     pass
 
-def get_shape_accuracy(etiquetes, GT):
+def get_shape_accuracy(labels, GT):
     # Funció que rep com a entrada les etiquetes que hem obtingut en
     # aplicar el KNN i el Ground-Truth d’aquestes. Retorna el percentatge d’etiquetes correctes
 
-    total_etiquetes = len(GT)
-    etiquetes_correctes = 0
+    total_etiquetes = len(labels)
+    labels_correctes = 0
 
     for i in range(total_etiquetes):
-        if etiquetes[i] == GT[i]:
-            etiquetes_correctes += 1
-    return (etiquetes_correctes / total_etiquetes) * 100
+        if labels[i] == GT[i]:
+            labels_correctes += 1
+    return (labels_correctes / total_etiquetes) * 100
 
 def get_color_accuracy(colors, labels):
     # Funció que rep com a entrada les etiquetes que hem obtingut en
@@ -109,12 +104,6 @@ def get_color_accuracy(colors, labels):
                 aux += 1
             aux_num = j
         aux_num += 1
-        print(col)
-        print(lab)
-        print()
-        print(aux)
-        print(aux_num)
-        print()
         colors_correctes += aux/(aux_num)
         print(colors_correctes)
     return (colors_correctes / total_colors) * 100
@@ -141,17 +130,17 @@ def get_colors(centroids):
         labels.append(utils.colors[i_max_prob]) #append del color que corresponde a la maxima probabilidad
     return labels
 
-
 def menu_principal():
     opciones = {
         '1': ('Test Retrieval_by_color', test_ret_by_color),
         '2': ('Test Retrieval_by_shape', test_ret_by_shape),
         '3': ('Test Retrieval_combined', test_ret_combined),
-        '4': ('Show 3D Clound of KMeans', clound_kmeans),
+        '4': ('Show 3DCloud of KMeans', clound_kmeans),
         '5': ('Color accuracy', test_color_accuracy),
-        '6': ('Salir', salir)
+        '6': ('Shape accuracy', test_shape_accuracy),
+        '7': ('Salir', salir)
     }
-    generar_menu(opciones, '6')
+    generar_menu(opciones, '7')
 
 def generar_menu(opciones, opcion_salida):
     opcion = None
@@ -171,9 +160,26 @@ def leer_opcion(opciones):
         print('Opción incorrecta, vuelva a intentarlo.')
     return a
 
-
 def ejecutar_opcion(opcion, opciones):
     opciones[opcion][1]()
+
+def test_shape_accuracy():
+    labels = []
+    percents = []
+    Ks = [2, 3, 4, 5, 6, 7, 8, 9, 10]
+
+    for i in Ks:
+        nn = KNN(train_imgs, train_class_labels)
+        knn_list = nn.predict(imgs, i)
+        percents.append(get_shape_accuracy(knn_list, class_labels))
+
+
+    plt.plot(Ks, percents)
+    plt.ylim([0, 100])
+    plt.xlabel('K')
+    plt.ylabel('% of accuracy')
+    plt.title("SHAPE ACCURACY")
+    plt.show()
 
 def test_color_accuracy():
     colores = []
@@ -192,6 +198,7 @@ def test_color_accuracy():
 
 
     plt.plot(Ks, percents)
+    plt.ylim([0, 100])
     plt.xlabel('K')
     plt.ylabel('% of accuracy')
     plt.title("COLOR ACCURACY")
@@ -219,20 +226,30 @@ def test_ret_by_color():
     # Colors to ask
     colors_to_ask = [a]
 
-    x = np.linspace(0, 10, 100)
     colores = []
     #percent = []
-    for im in imgs[:50]:
+    for im in imgs:
         km = KMeans(im, options={'km_init': 'first'})
         km.find_bestK(10)
         color = get_colors(km.centroids)
         colores.append(color)
 
     # Using retrieval_by_color to apply the question
-    indices, matching, ok_list = retrieval_by_color(imgs[:50], colores[:50], colors_to_ask)
+    indices, matching, info = retrieval_by_color(imgs, colores, colors_to_ask)
+    ok_list = [True] * len(colores)
+    print(indices)
+    print()
+    print()
+    print()
+    print()
+    print(color_labels)
+    for i in range(len(indices)):
+        print(color_labels[indices[i]])
+        if colors_to_ask not in color_labels[indices[i]]:
+            ok_list[i] = False
 
     # Visualizing the images that match
-    visualize_retrieval(np.array(matching), len(matching), title='RETRIEVAL_BY_COLOR', ok=ok_list)
+    visualize_retrieval(np.array(matching), len(matching), info=info, title='RETRIEVAL_BY_COLOR', ok=ok_list)
 
 def test_ret_by_shape():
     # -------------------------------------------------------------------------------------
@@ -251,15 +268,14 @@ def test_ret_by_shape():
     a = input('Introduce shape: ')
     # Colors to ask
     shapes_to_ask = a
-
-    nn = KNN(train_imgs[:50], train_class_labels[:50])
-    knn_list = nn.predict(test_imgs[:50], k=8)
-    print(class_labels[:50])
-    print()
-    print()
+    nn = KNN(train_imgs, train_class_labels)
+    knn_list = nn.predict(imgs, 2)
     print(knn_list)
+    print()
+    print()
+    print()
     # Using retrieval_by_color to apply the question
-    matching = retrieval_by_shape(train_imgs[:50], knn_list, shapes_to_ask)
+    matching = retrieval_by_shape(imgs, knn_list, shapes_to_ask)
     # Visualizing the images that match
     visualize_retrieval(np.array(matching), len(matching), title='RETRIEVAL_BY_SHAPE')
 
@@ -291,21 +307,29 @@ def test_ret_combined():
     b = input('Introduce color/es: ')
     # Colors and shapes to ask
     shapes_to_ask = a
-    colors_to_ask = [b]
+    colors_to_ask = b
+    print(shapes_to_ask)
+    print(colors_to_ask)
 
     colores = []
-    for im in imgs[:20]:
+    for im in imgs:
         km = KMeans(im, options={'km_init': 'first'})
         km.find_bestK(10)
         color = get_colors(km.centroids)
         colores.append(color)
 
-    # Some images and labels from train set
-    aux_imgs = imgs[:20]
-    aux_shape_labels = class_labels[:20]
-    aux_color_labels = colores[:20]
+    nn = KNN(train_imgs, train_class_labels)
+    knn_list = nn.predict(imgs, 2)
+    print(knn_list)
+    print()
+    print()
+    print()
+    print()
+    print(colores)
+
+
     # Using retrieval_by_color to apply the question
-    matching = retrieval_combined(aux_imgs, aux_shape_labels, aux_color_labels, shapes_to_ask, colors_to_ask)
+    matching = retrieval_combined(imgs, knn_list, colores, shapes_to_ask, colors_to_ask)
     # Visualizing the images that match
     visualize_retrieval(np.array(matching), len(matching), title='RETRIEVAL_COMBINED')
 
@@ -313,7 +337,7 @@ def clound_kmeans():
     # Graficos de las imagenes
     for im in imgs:
         km = KMeans(im)
-        km.find_bestK(20)
+        km.find_bestK(3)
         Plot3DCloud(km)
         visualize_k_means(km, im.shape) 
 
