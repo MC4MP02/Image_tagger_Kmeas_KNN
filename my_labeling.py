@@ -37,10 +37,12 @@ def retrieval_by_shape(imatges, labels, pregunta):
     # de K-neighbors amb l’etiqueta que busquem i retorni les imatges ordenades.
 
     images_list = []
+    info = []
     for i in range(len(labels)):
          if labels[i] == pregunta:
              images_list.append(imatges[i])
-    return images_list
+             info.append(class_labels[i])
+    return images_list, info
 
 def retrieval_combined(imatges, shape_labels, color_labels, preguntaF, preguntaC):
     # Funció que rep com a entrada una llista d’imatges, les etiquetes de
@@ -237,14 +239,7 @@ def test_ret_by_color():
     # Using retrieval_by_color to apply the question
     indices, matching, info = retrieval_by_color(imgs, colores, colors_to_ask)
     ok_list = [True] * len(colores)
-    print(indices)
-    print()
-    print()
-    print()
-    print()
-    print(color_labels)
     for i in range(len(indices)):
-        print(color_labels[indices[i]])
         if colors_to_ask not in color_labels[indices[i]]:
             ok_list[i] = False
 
@@ -270,14 +265,11 @@ def test_ret_by_shape():
     shapes_to_ask = a
     nn = KNN(train_imgs, train_class_labels)
     knn_list = nn.predict(imgs, 2)
-    print(knn_list)
-    print()
-    print()
-    print()
+    ok_list = [True] * len(knn_list)
     # Using retrieval_by_color to apply the question
-    matching = retrieval_by_shape(imgs, knn_list, shapes_to_ask)
+    matching, info = retrieval_by_shape(imgs, knn_list, shapes_to_ask)
     # Visualizing the images that match
-    visualize_retrieval(np.array(matching), len(matching), title='RETRIEVAL_BY_SHAPE')
+    visualize_retrieval(np.array(matching), len(matching), info=info, title='RETRIEVAL_BY_SHAPE', ok=ok_list)
 
 def test_ret_combined():
     print(
