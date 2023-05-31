@@ -90,16 +90,18 @@ class KMeans:
                 self.centroids = np.random.rand(self.K, self.X.shape[1])
                 self.old_centroids = np.random.rand(self.K, self.X.shape[1])
         elif self.options['km_init'].lower() == 'custom':
-            j = 0
-            k = 0.0
-            while i < self.K-1:
-                k = j * (self.X.shape[1]/self.X.shape[0])
-                if not self.list_equal(self.X[self.X.shape[1]*j + round(k)], elements):
-                    elements.append(self.X[self.X.shape[0]*j+int(k)])
-                    i += 1
-                j += 1
-            self.centroids = np.array(elements)
-            self.old_centroids = np.array(elements)
+            self.centroids = np.zeros((self.K, self.X.shape[1]))
+            self.centroids[0] = self.X[np.random.randint(self.X.shape[0]), :]
+
+            for i in range(1, self.K):
+                dist = np.array([min([np.inner(c - x, c - x) for c in self.centroids]) for x in self.X])
+                probs = dist / dist.sum()
+                cumprobs = probs.cumsum()
+                r = np.random.rand()
+                ind = np.where(cumprobs >= r)[0][0]
+                self.centroids[i] = self.X[ind]
+
+            self.old_centroids = np.copy(self.centroids)
 
     def get_labels(self):
         """Calculates the closest centroid of all points in X

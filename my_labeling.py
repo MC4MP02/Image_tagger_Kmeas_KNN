@@ -25,6 +25,7 @@ def retrieval_by_color(imatges, labels, pregunta):
             resultats.append(el)
             indices.append(i)
             info.append(color_labels[i])
+            #info.append(labels[i])
 
     return indices, resultats, info
 
@@ -38,11 +39,14 @@ def retrieval_by_shape(imatges, labels, pregunta):
 
     images_list = []
     info = []
+    indices = []
     for i in range(len(labels)):
          if labels[i] == pregunta:
              images_list.append(imatges[i])
              info.append(class_labels[i])
-    return images_list, info
+             indices.append(i)
+
+    return images_list, info, indices
 
 def retrieval_combined(imatges, shape_labels, color_labels, preguntaF, preguntaC):
     # Funció que rep com a entrada una llista d’imatges, les etiquetes de
@@ -107,7 +111,6 @@ def get_color_accuracy(colors, labels):
             aux_num = j
         aux_num += 1
         colors_correctes += aux/(aux_num)
-        print(colors_correctes)
     return (colors_correctes / total_colors) * 100
 
 def get_colors(centroids):
@@ -189,8 +192,8 @@ def test_color_accuracy():
     Ks = [2, 3, 4, 5, 6, 7, 8, 9, 10]
 
     for i in Ks:
-        for im in imgs[:50]:
-            km = KMeans(im, K=i, options={'km_init': 'first'})
+        for im in imgs[:20]:
+            km = KMeans(im, K=i, options={'km_init': 'custom'})
             km.fit()
             color = get_colors(km.centroids)
             colores.append(color)
@@ -198,7 +201,7 @@ def test_color_accuracy():
         size = len(colores)
         percents.append(get_color_accuracy(colores, color_labels[:size]))
 
-
+    print(percents)
     plt.plot(Ks, percents)
     plt.ylim([0, 100])
     plt.xlabel('K')
@@ -238,10 +241,13 @@ def test_ret_by_color():
 
     # Using retrieval_by_color to apply the question
     indices, matching, info = retrieval_by_color(imgs, colores, colors_to_ask)
-    ok_list = [True] * len(colores)
-    for i in range(len(indices)):
-        if colors_to_ask not in color_labels[indices[i]]:
-            ok_list[i] = False
+
+    ok_list = [True] * len(matching)
+    for i, (col, sol) in enumerate(zip(colores, color_labels)):
+        #if any(aux in sol and aux in colors_to_ask for aux in col):
+        for aux in col:
+            if aux in sol and aux == colors_to_ask:
+                ok_list[i] = True
 
     # Visualizing the images that match
     visualize_retrieval(np.array(matching), len(matching), info=info, title='RETRIEVAL_BY_COLOR', ok=ok_list)
@@ -265,9 +271,10 @@ def test_ret_by_shape():
     shapes_to_ask = a
     nn = KNN(train_imgs, train_class_labels)
     knn_list = nn.predict(imgs, 2)
-    ok_list = [True] * len(knn_list)
-    # Using retrieval_by_color to apply the question
-    matching, info = retrieval_by_shape(imgs, knn_list, shapes_to_ask)
+
+    matching, info, indices = retrieval_by_shape(imgs, knn_list, shapes_to_ask)
+    ok_list = [False] * len(knn_list)
+    ok_list = knn_list[indices] == class_labels[indices]
     # Visualizing the images that match
     visualize_retrieval(np.array(matching), len(matching), info=info, title='RETRIEVAL_BY_SHAPE', ok=ok_list)
 
