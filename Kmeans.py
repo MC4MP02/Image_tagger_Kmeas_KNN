@@ -178,9 +178,10 @@ class KMeans:
                 ant = act
             self.K = i
             self.fit()
-            inter = self.InterClass()
-            intra = self.withinClassDistance()
-            act = intra / inter
+            interC = self.InterClass()
+            intraC = self.withinClassDistance()
+            discriminantFisher = intra / inter
+            act = intraC
 
             if not fst:
                 if 100 - 100 * (act / ant) < 20:
