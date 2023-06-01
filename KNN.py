@@ -40,7 +40,7 @@ class KNN:
         #dim = test_data.shape[1]*test_data.shape[2] #dim = N*P
         #test_data = test_data.reshape((test_data.shape[0], dim)) #reshape de la matriz a un array de N*dim
         r_test_data = test_data.reshape((N, dim))
-        distances = cdist(r_test_data, self.train_data) #calculo de las distancias con cdist del test_data con el array de train
+        distances = cdist(r_test_data, self.train_data, 'cityblock') #calculo de las distancias con cdist del test_data con el array de train (Manhattan)
         indices = np.argsort(distances, axis=1)[:, :k]
         self.neighbors = self.labels[indices] #actualizacion de los nuevos neihbors
 
