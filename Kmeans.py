@@ -180,7 +180,7 @@ class KMeans:
             self.fit()
             interC = self.InterClass()
             intraC = self.withinClassDistance()
-            discriminantFisher = intra / inter
+            discriminantFisher = intraC / interC
             act = intraC
 
             if not fst:
