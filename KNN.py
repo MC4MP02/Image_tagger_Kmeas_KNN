@@ -1,5 +1,5 @@
-__authors__ = ['1633330','1637812','1630920']
-__group__ = 'DJ.17'
+__authors__ = 'TO_BE_FILLED'
+__group__ = 'TO_BE_FILLED'
 
 import numpy as np
 import math
