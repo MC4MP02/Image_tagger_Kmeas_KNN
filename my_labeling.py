@@ -1,5 +1,5 @@
-__authors__ = ['1633330','1637812','1630920']
-__group__ = 'DJ.17'
+__authors__ = 'TO_BE_FILLED'
+__group__ = 'TO_BE_FILLED'
 
 from utils_data import read_dataset, read_extended_dataset, crop_images, visualize_retrieval, visualize_k_means, Plot3DCloud
 
